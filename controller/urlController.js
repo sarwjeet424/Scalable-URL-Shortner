@@ -1,17 +1,12 @@
 const urlModel= require('../model/urlModel')
 const shortid=require('shortid')
+const axios=require('axios')
 
 const isValidString = function (value) {
     if (typeof value === "undefined" || value === null) return false;
     if (typeof value === "string" && value.trim().length === 0) return false;
     return true;
   };
-
-
-   const isValidUrl = function (url){
-    var urlRegex= (/^((ftp|http|https):\/\/)?(www.)?(?!.*(ftp|http|https|www.))[a-zA-Z0-9_-]+(\.[a-zA-Z]+)+((\/)[\w#]+)*(\/\w+\?[a-zA-Z0-9_]+=\w+(&[a-zA-Z0-9_]+=\w+)*)?$/) 
-    return urlRegex.test(url)
-  }
 
 const createUrl = async function(req,res){
   try{
@@ -20,7 +15,15 @@ const createUrl = async function(req,res){
     const data=req.body
     let {longUrl}=data
     if(!longUrl) return res.status(400).send({status:false,message:"longUrl is required"})
-    if(!isValidString(longUrl) || !isValidUrl(longUrl)) return res.status(400).send({status:false,message:"invalid longUrl"})
+    if(!isValidString(longUrl)) return res.status(400).send({status:false,message:"invalid longUrl"})
+    let options={
+      method:"get",
+      url:longUrl
+    }
+    let fetchData= await axios(options)
+    .then(()=>longUrl)
+    .catch(()=> undefined)
+    if(!fetchData) return res.status(400).send({status:false,message:`this ${longUrl} doesn't exist`})
     let unique= await urlModel.findOne({longUrl}).select({_id:0,longUrl:1,shortUrl:1,urlCode:1})
     if(unique)   return res.status(200).send({status:true,data:unique})
     let urlCode= shortid.generate()
