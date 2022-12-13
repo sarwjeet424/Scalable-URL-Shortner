@@ -44,7 +44,7 @@ const getUrl= async function (req,res){
     try{
 
         let urlCode=req.params.urlCode
-        if(!shortid.isValid(urlCode)) return res.status(500).send({status:false,message:"invalid urlCode"})
+        if(!shortid.isValid(urlCode)) return res.status(400).send({status:false,message:"invalid urlCode"})
         let data= await urlModel.findOne({urlCode})
         if(!data) return res.status(404).send({status:false,message:"urlCode not found"})
         return res.status(302).redirect(data.longUrl)
