@@ -13,6 +13,7 @@ const createUrl = async function(req,res){
 
     if(Object.keys(req.body).length==0) return res.status(400).send({status:false,message:"Request body cann't be empty"})
     const data=req.body
+    let baseUrl=req.headers.host
     let {longUrl}=data
     if(!longUrl) return res.status(400).send({status:false,message:"longUrl is required"})
     if(!isValidString(longUrl)) return res.status(400).send({status:false,message:"invalid longUrl"})
@@ -23,15 +24,18 @@ const createUrl = async function(req,res){
     let fetchData= await axios(options)
     .then(()=>longUrl)
     .catch(()=> undefined)
+
     if(!fetchData) return res.status(400).send({status:false,message:`this ${longUrl} doesn't exist`})
     let unique= await urlModel.findOne({longUrl}).select({_id:0,longUrl:1,shortUrl:1,urlCode:1})
     if(unique)   return res.status(200).send({status:true,data:unique})
     let urlCode= shortid.generate()
     urlCode= urlCode.toLowerCase()
-    const shortUrl=`http://localhost:3000/${urlCode}`
+
+    const shortUrl=`http://${baseUrl}/${urlCode}`
     data.urlCode=urlCode
     data.shortUrl=shortUrl
     await urlModel.create(data)
+    
     let urlInfo={}
     urlInfo.urlCode=urlCode
     urlInfo.longUrl=longUrl
