@@ -35,7 +35,7 @@ const createUrl = async function(req,res){
     data.urlCode=urlCode
     data.shortUrl=shortUrl
     await urlModel.create(data)
-    
+
     let urlInfo={}
     urlInfo.urlCode=urlCode
     urlInfo.longUrl=longUrl
@@ -52,7 +52,7 @@ const getUrl= async function (req,res){
 
         let urlCode=req.params.urlCode
         if(!shortid.isValid(urlCode)) return res.status(400).send({status:false,message:"invalid urlCode"})
-        let data= await urlModel.findOne({urlCode}).select({_id:0,createdAt:0,updatedAt:0,__v:0})
+        let data= await urlModel.findOne({urlCode})
         if(!data) return res.status(404).send({status:false,message:"urlCode not found"})
         return res.status(302).redirect(data.longUrl)
 
