@@ -29,11 +29,15 @@ const createUrl = async function(req,res){
     if(!fetchData) return res.status(400).send({status:false,message:`this ${longUrl} doesn't exist`})
 
     let cachedData = await GET_ASYNC(`${longUrl}`)
-    let data1=JSON.parse(cachedData)
-    if(cachedData)  return res.status(200).send({status:true,data:data1})
+    if(cachedData){
+      let caching=JSON.parse(cachedData)
+      return res.status(200).send({status:true,message:"cachedData",data:caching})
+    }
 
     let unique= await urlModel.findOne({longUrl}).select({_id:0,longUrl:1,shortUrl:1,urlCode:1})
-    if(unique)   return res.status(200).send({status:true,data:unique})
+    await SET_ASYNC(`${longUrl}`,60*5, JSON.stringify(unique))
+    if(unique)   return res.status(200).send({status:true,message:"DBData",data:unique})
+
     let urlCode= shortid.generate()
     urlCode= urlCode.toLowerCase()
 
@@ -41,14 +45,14 @@ const createUrl = async function(req,res){
     data.urlCode=urlCode
     data.shortUrl=shortUrl
 
-    await SET_ASYNC(`${longUrl}`,3600, JSON.stringify(data))
     await urlModel.create(data)
 
     let urlInfo={}
     urlInfo.urlCode=urlCode
     urlInfo.longUrl=longUrl
     urlInfo.shortUrl=shortUrl
-    return res.status(201).send({status:true,data:urlInfo})  
+    await SET_ASYNC(`${longUrl}`,60*5, JSON.stringify(urlInfo))
+    return res.status(201).send({status:true,message:"Success",data:urlInfo})  
 
   }catch(error){
     return res.status(500).send({status:false,message:error.message})
@@ -62,12 +66,14 @@ const getUrl= async function (req,res){
         if(!shortid.isValid(urlCode)) return res.status(400).send({status:false,message:"invalid urlCode"})
 
         let cachedData = await GET_ASYNC(`${urlCode}`)
-        let data1=JSON.parse(cachedData)
-        if(cachedData)  return res.status(302).redirect(data1.longUrl)
+        if(cachedData){
+          let data1=JSON.parse(cachedData)
+          return res.status(302).redirect(data1)
+        }  
 
         let data= await urlModel.findOne({urlCode})
         if(!data) return res.status(404).send({status:false,message:"urlCode not found"})
-        await SET_ASYNC(`${urlCode}`,3600, JSON.stringify(data))
+        await SET_ASYNC(`${urlCode}`,60*5, JSON.stringify(data.longUrl))
         
         return res.status(302).redirect(data.longUrl)
 
