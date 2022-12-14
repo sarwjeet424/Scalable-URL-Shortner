@@ -1,6 +1,7 @@
 const urlModel= require('../model/urlModel')
 const shortid=require('shortid')
 const axios=require('axios')
+const {SET_ASYNC,GET_ASYNC}=require('./redis')
 
 const isValidString = function (value) {
     if (typeof value === "undefined" || value === null) return false;
@@ -52,8 +53,14 @@ const getUrl= async function (req,res){
 
         let urlCode=req.params.urlCode
         if(!shortid.isValid(urlCode)) return res.status(400).send({status:false,message:"invalid urlCode"})
+
+        let cahcedProfileData = await GET_ASYNC(`${req.params.authorId}`)
+        if(cahcedProfileData)  res.send(cahcedProfileData)
+
         let data= await urlModel.findOne({urlCode})
         if(!data) return res.status(404).send({status:false,message:"urlCode not found"})
+        await SET_ASYNC(`${data._id}`, JSON.stringify(data))
+        
         return res.status(302).redirect(data.longUrl)
 
     }catch(error){
