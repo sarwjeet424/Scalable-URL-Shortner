@@ -20,25 +20,10 @@ redisClient.on("connect", async function () {
 
 //2. Prepare the functions for each command
 
-const SET_ASYNC = promisify(redisClient.SET).bind(redisClient);
+const SET_ASYNC = promisify(redisClient.SETEX).bind(redisClient);
 const GET_ASYNC = promisify(redisClient.GET).bind(redisClient);
 
 
 module.exports={SET_ASYNC,GET_ASYNC}
 
-// const fetchAuthorProfile = async function (req, res) {
 
-// //3. Start using the redis commad
-//   let cahcedProfileData = await GET_ASYNC(`${req.params.authorId}`)
-//   if(cahcedProfileData) {
-//     res.send(cahcedProfileData)
-//   } else {
-//     let profile = await authorModel.findById(req.params.authorId);
-//     await SET_ASYNC(`${req.params.authorId}`, JSON.stringify(profile))
-//     res.send({ data: profile });
-//   }
-
-// };
-
-// module.exports.createAuthor = createAuthor;
-// module.exports.fetchAuthorProfile = fetchAuthorProfile;

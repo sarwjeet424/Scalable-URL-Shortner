@@ -59,7 +59,7 @@ const getUrl= async function (req,res){
 
         let data= await urlModel.findOne({urlCode})
         if(!data) return res.status(404).send({status:false,message:"urlCode not found"})
-        await SET_ASYNC(`${data._id}`, JSON.stringify(data))
+        await SET_ASYNC(`${data._id}`,84600, JSON.stringify(data))
         
         return res.status(302).redirect(data.longUrl)
 
