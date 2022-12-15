@@ -20,9 +20,17 @@ const createUrl = async function(req,res){
 
     let {longUrl}=data
     if(!longUrl) return res.status(400).send({status:false,message:"longUrl is required"})
+    
 
     /*-----------Validation of longUrl -------------------*/
     if(!isValidString(longUrl)) return res.status(400).send({status:false,message:"invalid longUrl"})
+
+    /*--------Checking in cache--------------------------*/
+    let cachedData = await GET_ASYNC(`${longUrl}`)
+    if(cachedData){
+      let caching=JSON.parse(cachedData)
+      return res.status(200).send({status:true,message:"cachedData",data:caching})
+    }
 
     /*----------Axios call--------------------------------*/
     let options={
@@ -34,18 +42,12 @@ const createUrl = async function(req,res){
     .catch(()=> "")
 
     if(!fetchData) return res.status(400).send({status:false,message:`this ${longUrl} doesn't exist`})
-
-    /*--------Checking in cache--------------------------*/
-    let cachedData = await GET_ASYNC(`${longUrl}`)
-    if(cachedData){
-      let caching=JSON.parse(cachedData)
-      return res.status(200).send({status:true,message:"cachedData",data:caching})
-    }
+  
 
     /*---------Checking in DB and Setting in cache------------------------ */
     let unique= await urlModel.findOne({longUrl}).select({_id:0,longUrl:1,shortUrl:1,urlCode:1})
     if(unique){
-      await SET_ASYNC(`${longUrl}`,60*5, JSON.stringify(unique))
+       SET_ASYNC(`${longUrl}`,60*5, JSON.stringify(unique))
       return res.status(200).send({status:true,message:"DBData",data:unique})
     } 
 
