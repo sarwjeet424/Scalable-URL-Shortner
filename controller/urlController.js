@@ -12,9 +12,7 @@ const isValidString = function (value) {
 const createUrl = async function(req,res){
   try{
 
-    if(Object.keys(req.body).length==0) 
-    return res.status(400).send({status:false,message:"Request body cann't be empty"})
-
+    if(Object.keys(req.body).length==0)  return res.status(400).send({status:false,message:"Request body cann't be empty"})
     const data=req.body
 
     /*---------baseUrl = localhost:3000----------*/
@@ -23,7 +21,7 @@ const createUrl = async function(req,res){
     let {longUrl}=data
     if(!longUrl) return res.status(400).send({status:false,message:"longUrl is required"})
 
-    /*-----------Validation of url type-------------------*/
+    /*-----------Validation of longUrl -------------------*/
     if(!isValidString(longUrl)) return res.status(400).send({status:false,message:"invalid longUrl"})
 
     /*----------Axios call--------------------------------*/
@@ -44,10 +42,12 @@ const createUrl = async function(req,res){
       return res.status(200).send({status:true,message:"cachedData",data:caching})
     }
 
-    /*---------Setting in cache------------------------ */
+    /*---------Checking in DB and Setting in cache------------------------ */
     let unique= await urlModel.findOne({longUrl}).select({_id:0,longUrl:1,shortUrl:1,urlCode:1})
-    await SET_ASYNC(`${longUrl}`,60*5, JSON.stringify(unique))
-    if(unique)   return res.status(200).send({status:true,message:"DBData",data:unique})
+    if(unique){
+      await SET_ASYNC(`${longUrl}`,60*5, JSON.stringify(unique))
+      return res.status(200).send({status:true,message:"DBData",data:unique})
+    } 
 
     let urlCode= shortid.generate().toLowerCase()
   
@@ -57,7 +57,7 @@ const createUrl = async function(req,res){
 
     await urlModel.create(data)
 
-    /*-----------Destructuring-------------------------- */
+    /*-----------Setting key-value in new object-------------------------- */
     let urlInfo={}
     urlInfo.urlCode=urlCode
     urlInfo.longUrl=longUrl
@@ -76,8 +76,7 @@ const getUrl= async function (req,res){
     try{
 
         let urlCode=req.params.urlCode
-        if(!shortid.isValid(urlCode)) 
-        return res.status(400).send({status:false,message:"invalid urlCode"})
+        if(!shortid.isValid(urlCode))  return res.status(400).send({status:false,message:"Invalid urlCode"})
 
         /*---------------Checking in cache---------------------- */
         let cachedData = await GET_ASYNC(`${urlCode}`)
@@ -86,7 +85,7 @@ const getUrl= async function (req,res){
           return res.status(302).redirect(data1)
         }  
 
-        /*--------------Checking in DB-------------------------- */
+        /*--------------Checking in DB and setting in cache-------------------------- */
         let data= await urlModel.findOne({urlCode})
         if(!data) return res.status(404).send({status:false,message:"urlCode not found"})
         await SET_ASYNC(`${urlCode}`,60*5, JSON.stringify(data.longUrl))
