@@ -30,8 +30,8 @@ const createUrl = async function(req,res){
       url:longUrl
     }
     let fetchData= await axios(options)
-    .then(()=>longUrl)
-    .catch(()=> undefined)
+    .then(()=>[])
+    .catch(()=> "")
 
     if(!fetchData) return res.status(400).send({status:false,message:`this ${longUrl} doesn't exist`})
 
