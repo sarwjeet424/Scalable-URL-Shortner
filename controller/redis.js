@@ -4,15 +4,15 @@ const { promisify } = require("util");
 
 //1. Connect to the redis server
 const redisClient = redis.createClient(
-   16229,
-  "redis-16229.c212.ap-south-1-1.ec2.cloud.redislabs.com",
+   17112,
+  "redis-17112.c264.ap-south-1-1.ec2.cloud.redislabs.com",
   { no_ready_check: true }
 );
 redisClient.auth("xest3pC118Sn1P6qAjXUadLzqELXLZzk", function (err) {
   if (err) throw err;
 });
 
-redisClient.on("connect", async function() {
+redisClient.on("connect", async function() {   // can not use any other thing other than  "connect"
   console.log("Connected to Redis.");
 });
 
