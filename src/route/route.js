@@ -6,7 +6,7 @@ const {createUrl,getUrl}=require('../../controller/urlController')
 router.post('/url/shorten',createUrl)
 
 //SECOND API------------------------------------*/
-router.get('/:urlCode',getUrl)
+router.get('/:urlCode', getUrl)
 
 //END POINT-------------------------------------*/
 router.all('/*',function (req,res){
