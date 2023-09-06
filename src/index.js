@@ -7,7 +7,7 @@ app.use(express.json())
 
 mongoose.set('strictQuery', true);
 
-mongoose.connect(process.env.MONGO_URL,{useNewUrlParser:true})
+mongoose.connect(process.env.MONGO_URL ,{useNewUrlParser:true})
 .then(()=>  console.log("MongoDB Connected"))
 .catch((err)=> console.log(err))
 
